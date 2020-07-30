@@ -24,6 +24,10 @@ class Resize
     public function resize($configuration, $save = false)
     {
         $imageContents = $this->imageRepository->getOriginalImage($configuration['image_file'], $this->getIsFullImagePath());
+        
+        if (empty($imageContents)) {
+            throw new \MageSuite\ImageResize\Exception\EmptyImageLoaded();
+        }
 
         $image = new \Imagick();
         $image->readImageBlob($imageContents);
