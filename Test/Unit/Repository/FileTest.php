@@ -12,7 +12,7 @@ class FileTest extends \PHPUnit\Framework\TestCase
      */
     protected $fileRepository;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->fileRepository = new \MageSuite\ImageResize\Repository\File();
 
@@ -23,7 +23,7 @@ class FileTest extends \PHPUnit\Framework\TestCase
         $this->cleanUpThumbnailsDirectory();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->cleanUpThumbnailsDirectory();
     }
@@ -33,11 +33,10 @@ class FileTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('existing_file_contents', $this->fileRepository->getOriginalImage('/existing_file'));
     }
 
-    /**
-     * @expectedException \MageSuite\ImageResize\Exception\OriginalImageNotFound
-     */
     public function testItThrowsExceptionWhenOriginalImageWasNotFound()
     {
+        $this->expectException(\MageSuite\ImageResize\Exception\OriginalImageNotFound::class);
+
         $this->fileRepository->getOriginalImage('/not_existing_file');
     }
 
