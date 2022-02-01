@@ -44,6 +44,12 @@ class Resize
 
         $image = new \Imagick();
         $image->readImageBlob($imageContents);
+        $colorspace = $image->getImageColorspace();
+
+        if ($colorspace === \Imagick::COLORSPACE_CMYK || $colorspace === \Imagick::COLORSPACE_UNDEFINED) {
+            $image->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
+        }
+
         $format = $image->getImageFormat();
 
         if ($format == self::FORMAT_GIF) {
