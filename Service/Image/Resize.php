@@ -95,8 +95,8 @@ class Resize
         $background->compositeImage(
             $originalImage,
             \Imagick::COMPOSITE_DEFAULT,
-            -($originalImage->getImageWidth() - $configuration['width']) / 2,
-            -($originalImage->getImageHeight() - $configuration['height']) / 2
+            -(int)(($originalImage->getImageWidth() - $configuration['width']) / 2),
+            -(int)(($originalImage->getImageHeight() - $configuration['height']) / 2)
         );
 
         return $background;
