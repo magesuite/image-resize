@@ -4,4 +4,3 @@
     'MageSuite_ImageResize',
     __DIR__
 );
-
