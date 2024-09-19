@@ -4,13 +4,8 @@ namespace MageSuite\ImageResize\Test\Unit\Repository;
 
 class FileTest extends \PHPUnit\Framework\TestCase
 {
-    /** @var string */
-    protected $assetsDirectoryPath;
-
-    /**
-     * @var \MageSuite\ImageResize\Repository\File
-     */
-    protected $fileRepository;
+    protected ?string $assetsDirectoryPath;
+    protected ?\MageSuite\ImageResize\Repository\File $fileRepository;
 
     public function setUp(): void
     {
@@ -50,19 +45,20 @@ class FileTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('test_data', file_get_contents($targetFilePath));
     }
 
-    protected function cleanUpThumbnailsDirectory()
+    protected function cleanUpThumbnailsDirectory(): void
     {
         if (file_exists($this->assetsDirectoryPath . '/catalog/product/thumbnail')) {
             $this->deleteDirectory($this->assetsDirectoryPath . '/catalog/product/thumbnail');
         }
     }
 
-    public function deleteDirectory($dir)
+    public function deleteDirectory($dir): bool
     {
-        $files = array_diff(scandir($dir), array('.', '..'));
+        $files = array_diff(scandir($dir), ['.', '..']);
         foreach ($files as $file) {
             (is_dir("$dir/$file")) ? $this->deleteDirectory("$dir/$file") : unlink("$dir/$file");
         }
+
         return rmdir($dir);
     }
 }

@@ -2,4 +2,6 @@
 
 namespace MageSuite\ImageResize\Exception;
 
-class EmptyImageLoaded extends \Exception {}
+class EmptyImageLoaded extends \Exception
+{
+}

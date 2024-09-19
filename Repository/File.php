@@ -2,16 +2,17 @@
 
 namespace MageSuite\ImageResize\Repository;
 
+// phpcs:disable Magento2.Functions.DiscouragedFunction,Generic.PHP.NoSilencedErrors.Discouraged
 class File implements ImageInterface
 {
-    protected $mediaDirectoryPath;
+    protected ?string $mediaDirectoryPath;
 
     public function __construct()
     {
         $this->mediaDirectoryPath = BP . '/pub/media';
     }
 
-    public function setMediaDirectoryPath($path)
+    public function setMediaDirectoryPath(string $path): void
     {
         if (!file_exists($path)) {
             throw new \InvalidArgumentException(sprintf("Folder %s does not exist", $path));
@@ -21,13 +22,9 @@ class File implements ImageInterface
     }
 
     /**
-     * Gets original image content for specified path
-     * @param string $path
-     * @param bool $isFullImagePath
-     * @return mixed
      * @throws \MageSuite\ImageResize\Exception\OriginalImageNotFound
      */
-    public function getOriginalImage($path, $isFullImagePath = false)
+    public function getOriginalImage(string $path, bool $isFullImagePath = false): string
     {
         $imagePath = $isFullImagePath ? '/' . $path : '/catalog/product' . $path;
 
@@ -40,13 +37,7 @@ class File implements ImageInterface
         return $contents;
     }
 
-    /**
-     * Saves resized image content to specified path
-     * @param $path
-     * @param $data
-     * @return mixed
-     */
-    public function save($path, $data)
+    public function save(string $path, $data): string
     {
         $path = $this->mediaDirectoryPath . '/' . $path;
 
@@ -61,19 +52,20 @@ class File implements ImageInterface
         return $path;
     }
 
-    private function normalizePath($path)
+    private function normalizePath($path): string
     {
         return array_reduce(explode('/', $path), function ($a, $b) {
             if ($a === 0) {
-                $a = "/";
+                $a = '/';
             }
-            if ($b === "" || $b === ".") {
+            if ($b === '' || $b === '.') {
                 return $a;
             }
-            if ($b === "..") {
+            if ($b === '..') {
                 return dirname($a);
             }
             return preg_replace("/\/+/", "/", "$a/$b");
         }, 0);
     }
 }
+// phpcs:enable

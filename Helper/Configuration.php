@@ -7,32 +7,17 @@ class Configuration extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_IMAGE_PLACEHOLDER = 'catalog/placeholder/image_placeholder';
     const DEFAULT_PLACEHOLDER = 'Magento_Catalog::images/product/placeholder/image.jpg';
 
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    protected $scopeConfig;
+    protected \Magento\Framework\View\Asset\Repository $assetRepository;
 
-    /**
-     * @var \Magento\Framework\View\Asset\Repository
-     */
-    protected $assetRepository;
-
-    /**
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
-    protected $storeManager;
-
-    protected $mediaBaseUrl;
+    protected \Magento\Store\Model\StoreManagerInterface $storeManager;
+    protected ?string $mediaBaseUrl;
 
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface,
         \Magento\Framework\View\Asset\Repository $assetRepository,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
-
-        $this->scopeConfig = $scopeConfigInterface;
         $this->assetRepository = $assetRepository;
         $this->storeManager = $storeManager;
     }
@@ -42,12 +27,12 @@ class Configuration extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(self::XML_PATH_IMAGE_PLACEHOLDER, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
     }
 
-    public function getDefaultPlaceholderUrl()
+    public function getDefaultPlaceholderUrl(): string
     {
-        $this->assetRepository->getUrl(self::DEFAULT_PLACEHOLDER);
+        return $this->assetRepository->getUrl(self::DEFAULT_PLACEHOLDER);
     }
 
-    public function getMediaBaseUrl()
+    public function getMediaBaseUrl(): string
     {
         if (!$this->mediaBaseUrl) {
             $this->mediaBaseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
