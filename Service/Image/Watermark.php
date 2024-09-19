@@ -3,15 +3,17 @@ declare(strict_types=1);
 
 namespace MageSuite\ImageResize\Service\Image;
 
-// @phpcs:disable MageSuite.TooMany.MethodArguments
 class Watermark
 {
     protected \MageSuite\ImageResize\Repository\ImageInterface $imageRepository;
+    protected \MageSuite\ImageResize\Model\WatermarkConfiguration $configuration;
 
     public function __construct(
-        \MageSuite\ImageResize\Repository\ImageInterface $imageRepository
+        \MageSuite\ImageResize\Repository\ImageInterface $imageRepository,
+        \MageSuite\ImageResize\Model\WatermarkConfiguration $configuration
     ) {
         $this->imageRepository = $imageRepository;
+        $this->configuration = $configuration;
     }
 
     public function apply(\Imagick $originalImage, array $configuration): void
@@ -20,24 +22,23 @@ class Watermark
         if (empty($watermarkConfiguration)) {
             return;
         }
-        $config = new \MageSuite\ImageResize\Model\WatermarkConfiguration();
-        $config->decrypt($watermarkConfiguration);
+        $this->configuration->decrypt($watermarkConfiguration);
 
-        $watermark = $this->createWatermark($config);
+        $watermark = $this->createWatermark();
         if ($watermark === null) {
             return;
         }
 
-        $watermark = $this->processWatermark($originalImage, $watermark, $config);
-        list($x, $y) = $this->getWatermarkPosition($originalImage, $watermark, $config);
+        $watermark = $this->processWatermark($originalImage, $watermark);
+        list($x, $y) = $this->getWatermarkPosition($originalImage, $watermark);
         $originalImage->compositeImage($watermark, \Imagick::COMPOSITE_OVER, $x, $y);
         $watermark->destroy();
     }
 
-    protected function createWatermark(\MageSuite\ImageResize\Model\WatermarkConfiguration $config): ?\Imagick
+    protected function createWatermark(): ?\Imagick
     {
         try {
-            $watermarkFileContent = $this->imageRepository->getOriginalImage('/watermark/' . $config->getImage());
+            $watermarkFileContent = $this->imageRepository->getOriginalImage('/watermark/' . $this->configuration->getImage());
         } catch (\MageSuite\ImageResize\Exception\OriginalImageNotFound $e) {
             return null;
         }
@@ -46,17 +47,17 @@ class Watermark
         $watermark->readImageBlob($watermarkFileContent);
         $watermark->setImageAlphaChannel(\Imagick::ALPHACHANNEL_SET);
         $watermark->setImageBackgroundColor('none');
-        $watermark->evaluateImage(\Imagick::EVALUATE_MULTIPLY, $config->getOpacityAsFloat(), \Imagick::CHANNEL_ALPHA);
-        $watermark->scaleImage($config->getWidth(), $config->getHeight());
+        $watermark->evaluateImage(\Imagick::EVALUATE_MULTIPLY, $this->configuration->getOpacityAsFloat(), \Imagick::CHANNEL_ALPHA);
+        $watermark->scaleImage($this->configuration->getWidth(), $this->configuration->getHeight());
 
         return $watermark;
     }
 
-    protected function getWatermarkPosition(\Imagick $originalImage, \Imagick $watermark, \MageSuite\ImageResize\Model\WatermarkConfiguration $config): array
+    protected function getWatermarkPosition(\Imagick $originalImage, \Imagick $watermark): array
     {
         $x = $y = 0;
 
-        switch ($config->getPosition()) {
+        switch ($this->configuration->getPosition()) {
             case \Magento\Framework\Image\Adapter\AbstractAdapter::POSITION_TOP_RIGHT:
                 $x = $originalImage->getImageWidth() - $watermark->getImageWidth();
                 break;
@@ -76,9 +77,9 @@ class Watermark
         return [$x, $y];
     }
 
-    protected function processWatermark(\Imagick $originalImage, \Imagick $watermarkImage, \MageSuite\ImageResize\Model\WatermarkConfiguration $config): \Imagick
+    protected function processWatermark(\Imagick $originalImage, \Imagick $watermarkImage): \Imagick
     {
-        switch ($config->getPosition()) {
+        switch ($this->configuration->getPosition()) {
             case \Magento\Framework\Image\Adapter\AbstractAdapter::POSITION_STRETCH:
                 $watermarkImage->scaleImage($originalImage->getImageWidth(), $originalImage->getImageHeight());
                 break;
