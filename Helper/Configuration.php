@@ -10,7 +10,7 @@ class Configuration extends \Magento\Framework\App\Helper\AbstractHelper
     protected \Magento\Framework\View\Asset\Repository $assetRepository;
 
     protected \Magento\Store\Model\StoreManagerInterface $storeManager;
-    protected ?string $mediaBaseUrl;
+    protected ?string $mediaBaseUrl = null;
 
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
