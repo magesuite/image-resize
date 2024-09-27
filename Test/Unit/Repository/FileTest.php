@@ -25,7 +25,7 @@ class FileTest extends \PHPUnit\Framework\TestCase
 
     public function testItGetsFileContentsProperly()
     {
-        $this->assertEquals('existing_file_contents', $this->fileRepository->getOriginalImage('/existing_file'));
+        $this->assertEquals('existing_file_contents' . \PHP_EOL, $this->fileRepository->getOriginalImage('/existing_file'));
     }
 
     public function testItThrowsExceptionWhenOriginalImageWasNotFound()
