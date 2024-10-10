@@ -22,7 +22,7 @@ class Watermark
         if (empty($watermarkConfiguration)) {
             return;
         }
-        $this->configuration->decrypt($watermarkConfiguration);
+        $this->configuration->decode($watermarkConfiguration);
 
         $watermark = $this->createWatermark();
         if ($watermark === null) {
@@ -38,7 +38,7 @@ class Watermark
     protected function createWatermark(): ?\Imagick
     {
         try {
-            $watermarkFileContent = $this->imageRepository->getOriginalImage('/watermark/' . $this->configuration->getImage());
+            $watermarkFileContent = $this->imageRepository->getOriginalImage($this->configuration->getImage(), true);
         } catch (\MageSuite\ImageResize\Exception\OriginalImageNotFound $e) {
             return null;
         }
@@ -58,15 +58,21 @@ class Watermark
         $x = $y = 0;
 
         switch ($this->configuration->getPosition()) {
+            case \Magento\Framework\Image\Adapter\AbstractAdapter::POSITION_TOP_LEFT:
+                $x = $this->configuration->getOffsetX();
+                $y = $this->configuration->getOffsetY();
+                break;
             case \Magento\Framework\Image\Adapter\AbstractAdapter::POSITION_TOP_RIGHT:
-                $x = $originalImage->getImageWidth() - $watermark->getImageWidth();
+                $x = $originalImage->getImageWidth() - $watermark->getImageWidth() - $this->configuration->getOffsetX();
+                $y = $this->configuration->getOffsetY();
                 break;
             case \Magento\Framework\Image\Adapter\AbstractAdapter::POSITION_BOTTOM_LEFT:
-                $y = $originalImage->getImageHeight() - $watermark->getImageHeight();
+                $y = $originalImage->getImageHeight() - $watermark->getImageHeight() - $this->configuration->getOffsetY();
+                $x = $this->configuration->getOffsetX();
                 break;
             case \Magento\Framework\Image\Adapter\AbstractAdapter::POSITION_BOTTOM_RIGHT:
-                $x = $originalImage->getImageWidth() - $watermark->getImageWidth();
-                $y = $originalImage->getImageHeight() - $watermark->getImageHeight();
+                $x = $originalImage->getImageWidth() - $watermark->getImageWidth() - $this->configuration->getOffsetX();
+                $y = $originalImage->getImageHeight() - $watermark->getImageHeight() - $this->configuration->getOffsetY();
                 break;
             case \Magento\Framework\Image\Adapter\AbstractAdapter::POSITION_CENTER:
                 $x = (int)(($originalImage->getImageWidth() - $watermark->getImageWidth()) / 2);

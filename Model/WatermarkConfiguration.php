@@ -10,16 +10,29 @@ class WatermarkConfiguration extends \Magento\Framework\DataObject
     public const KEY_OPACITY = 'opacity';
     public const KEY_WIDTH = 'width';
     public const KEY_HEIGHT = 'height';
-    public const SERIALIZATION_SEPARATOR = '|';
-    public const SIZE_SEPARATOR = 'x';
+    public const KEY_OFFSET_X = 'offset_x';
+    public const KEY_OFFSET_Y = 'offset_y';
+    public const KEY_FILE_SIZE = 'file_size';
 
-    public const SERIALIZATION_KEYS = [
+    public const SIZE_SEPARATOR = 'x';
+    public const VALIDATION_KEYS = [
         self::KEY_IMAGE,
         self::KEY_POSITION,
         self::KEY_OPACITY,
         self::KEY_WIDTH,
-        self::KEY_HEIGHT
+        self::KEY_HEIGHT,
+        self::KEY_FILE_SIZE,
     ];
+
+    protected \MageSuite\ImageResize\Model\Encoder\WatermarkEncoder $watermarkEncoder;
+
+    public function __construct(
+        \MageSuite\ImageResize\Model\Encoder\WatermarkEncoder $watermarkEncoder,
+        $data = []
+    ) {
+        parent::__construct($data);
+        $this->watermarkEncoder = $watermarkEncoder;
+    }
 
     public function getImage(): ?string
     {
@@ -41,7 +54,7 @@ class WatermarkConfiguration extends \Magento\Framework\DataObject
         return $this->setData(self::KEY_POSITION, $position);
     }
 
-    public function getOpacity(): ?int
+    public function getOpacity(): int
     {
         return (int)$this->getData(self::KEY_OPACITY);
     }
@@ -71,6 +84,36 @@ class WatermarkConfiguration extends \Magento\Framework\DataObject
         return $this->setData(self::KEY_HEIGHT, $height);
     }
 
+    public function setOffsetX(?int $offset): self
+    {
+        return $this->setData(self::KEY_OFFSET_X, $offset);
+    }
+
+    public function setOffsetY(?int $offset): self
+    {
+        return $this->setData(self::KEY_OFFSET_Y, $offset);
+    }
+
+    public function getOffsetX(): int
+    {
+        return (int)$this->getData(self::KEY_OFFSET_X);
+    }
+
+    public function getOffsetY(): int
+    {
+        return (int)$this->getData(self::KEY_OFFSET_Y);
+    }
+
+    public function setFilesize(int $filesize): self
+    {
+        return $this->setData(self::KEY_FILE_SIZE, $filesize);
+    }
+
+    public function getFilesize(): int
+    {
+        return (int)$this->getData(self::KEY_FILE_SIZE);
+    }
+
     public function setSize(string $size): self
     {
         list($width, $height) = explode(self::SIZE_SEPARATOR, $size . self::SIZE_SEPARATOR);
@@ -80,25 +123,14 @@ class WatermarkConfiguration extends \Magento\Framework\DataObject
         return $this;
     }
 
-    public function encrypt(): string
+    public function encode(): string
     {
-        $data = [];
-        foreach (self::SERIALIZATION_KEYS as $key) {
-            $data[] = $this->getData($key);
-        }
-
-        return bin2hex(implode(self::SERIALIZATION_SEPARATOR, $data));
+        return $this->watermarkEncoder->encode($this);
     }
 
-    public function decrypt(string $data): self
+    public function decode(string $data): self
     {
-        $data = (string)hex2bin($data);
-        $values = explode(self::SERIALIZATION_SEPARATOR, $data);
-
-        foreach (self::SERIALIZATION_KEYS as $index => $key) {
-            $this->setData($key, $values[$index] ?? null);
-        }
-        return $this;
+        return $this->watermarkEncoder->decode($this, $data);
     }
 
     public function getOpacityAsFloat(): float
@@ -108,8 +140,10 @@ class WatermarkConfiguration extends \Magento\Framework\DataObject
 
     public function isValid(): bool
     {
-        $filledKeys = array_filter($this->getData());
-        return count($filledKeys) === count(self::SERIALIZATION_KEYS);
+        $filledData = array_filter($this->getData());
+        $filledKeys = array_intersect_key($filledData, array_flip(self::VALIDATION_KEYS));
+        
+        return count($filledKeys) === count(self::VALIDATION_KEYS);
     }
 
     public function __toString(): string
@@ -118,6 +152,6 @@ class WatermarkConfiguration extends \Magento\Framework\DataObject
             return '';
         }
 
-        return $this->encrypt();
+        return $this->encode();
     }
 }
