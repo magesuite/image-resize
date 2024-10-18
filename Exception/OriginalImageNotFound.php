@@ -2,4 +2,6 @@
 
 namespace MageSuite\ImageResize\Exception;
 
-class OriginalImageNotFound extends \Exception {}
+class OriginalImageNotFound extends \Exception
+{
+}

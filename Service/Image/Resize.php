@@ -9,29 +9,23 @@ class Resize
     const PNG_MIME_TYPE = 'image/png';
     const FORMAT_GIF = 'GIF';
 
-    /**
-     * @var \MageSuite\ImageResize\Repository\ImageInterface
-     */
-    protected $imageRepository;
+    protected \MageSuite\ImageResize\Repository\ImageInterface $imageRepository;
+    protected \MageSuite\ImageResize\Service\Image\Watermark $watermark;
+    protected bool $isFullImagePath = false;
 
-    /**
-     * @var bool
-     */
-    protected $isFullImagePath = false;
-
-    public function __construct(\MageSuite\ImageResize\Repository\ImageInterface $imageRepository)
-    {
+    public function __construct(
+        \MageSuite\ImageResize\Repository\ImageInterface $imageRepository,
+        \MageSuite\ImageResize\Service\Image\Watermark $watermark
+    ) {
         $this->imageRepository = $imageRepository;
+        $this->watermark = $watermark;
     }
 
     /**
-     * @param array $configuration
-     * @param bool $save
-     * @return \Imagick
      * @throws \ImagickException
      * @throws \MageSuite\ImageResize\Exception\EmptyImageLoaded
      */
-    public function resize(array $configuration, $save = false)
+    public function resize(array $configuration, bool $save = false): \Imagick
     {
         $imageContents = $this->imageRepository->getOriginalImage(
             $configuration['image_file'],
@@ -60,6 +54,8 @@ class Resize
 
         $background->setFilename($configuration['image_file']);
 
+        $this->watermark->apply($background, $configuration);
+
         if ($save) {
             $this->save($configuration['dest_path'], $background);
         }
@@ -68,12 +64,9 @@ class Resize
     }
 
     /**
-     * @param \Imagick $originalImage
-     * @param array $configuration
-     * @return \Imagick
      * @throws \ImagickException
      */
-    protected function resizeImage(\Imagick $originalImage, array $configuration)
+    protected function resizeImage(\Imagick $originalImage, array $configuration): \Imagick
     {
         $backgroundColor = self::BACKGROUD_WHITE;
 
@@ -103,9 +96,6 @@ class Resize
     }
 
     /**
-     * @param \Imagick $originalImage
-     * @param array $configuration
-     * @return \Imagick
      * @throws \ImagickException
      */
     protected function resizeGifImage(\Imagick $originalImage, array $configuration)
@@ -124,12 +114,7 @@ class Resize
         return $originalImage->deconstructImages();
     }
 
-    /**
-     * @param string $requestUri
-     * @param \Imagick $image
-     * @return mixed
-     */
-    public function save(string $requestUri, \Imagick $image)
+    public function save(string $requestUri, \Imagick $image): string
     {
         $imageContent = (string)$image;
 
@@ -140,26 +125,19 @@ class Resize
                 $imageContent = $image->getImagesBlob();
             }
         } catch (\ImagickException $e) {
-            // do nothing
+            ;// do nothing
         }
 
         return $this->imageRepository->save($requestUri, $imageContent);
     }
 
-    /**
-     * @param bool $flag
-     * @return $this
-     */
-    public function setIsFullImagePath(bool $flag)
+    public function setIsFullImagePath(bool $flag): self
     {
         $this->isFullImagePath = $flag;
         return $this;
     }
 
-    /**
-     * @return bool
-     */
-    public function getIsFullImagePath()
+    public function getIsFullImagePath(): bool
     {
         return $this->isFullImagePath;
     }
