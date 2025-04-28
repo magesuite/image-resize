@@ -83,7 +83,7 @@ class WatermarkEncoder
     protected function mapValue(int $value, int $fromMin, int $fromMax, int $toMin, int $toMax): int // phpcs:ignore
     {
         $rangeRatio = ($toMax - $toMin) / ($fromMax - $fromMin);
-        $scaledValue = round(($value - $fromMin) * $rangeRatio);
+        $scaledValue = round((float)bcmul((string)($value - $fromMin), (string)$rangeRatio, 2));
 
         return $toMin + (int)$scaledValue;
     }
